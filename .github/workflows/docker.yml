@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - 'dev'
+      - 'updated-nginx'
     tags:
       - '*'
   pull_request:

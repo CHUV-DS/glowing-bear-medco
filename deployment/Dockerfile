@@ -24,7 +24,7 @@ RUN cd $GB_SRC && \
 
 
 # -------------------------------------------
-FROM nginx:latest as release
+FROM nginx:1.20.1 as release
 
 # build time env
 ENV GB_DIST="/glowing-bear-dist" \
