@@ -159,7 +159,7 @@ export class QueryService {
 
   public execQuery(): void {
 
-    if (!this.constraintService.hasConstraint()) {
+    if (!this.constraintService.hasSelectionConstraint()) {
       MessageHelper.alert('warn', 'No constraints specified, please correct.');
       return;
     } else if (!this.queryType) {
@@ -180,6 +180,7 @@ export class QueryService {
     // prepare and execute query
     this.query.generateUniqueId();
     this.query.constraint = this.constraintService.generateConstraint();
+    this.query.sequentialConstraint = this.constraintService.rootSequentialConstraint;
     this.query.queryTimingSameInstanceNum = this.queryTiming === QueryTemporalSetting.sameinstance
     this.query.timingSequenceInfo = this.queryTiming === QueryTemporalSetting.sequential ? this.constraintService.sequentialInfo : null
 
@@ -197,7 +198,7 @@ export class QueryService {
         }
         this.queryResults.next(parsedResults);
         this.isUpdating = false;
-        this.isDirty = this.constraintService.hasConstraint().valueOf();
+        this.isDirty = this.constraintService.hasSelectionConstraint().valueOf();
       },
       (err) => {
         if (err instanceof UserInputError) {
@@ -310,17 +311,19 @@ export class QueryService {
   }
 
   set queryTiming(val: QueryTemporalSetting) {
-    this.constraintService.checkSequential(val)
     this._queryTiming = val
   }
 
   set sequentialInfo(val: ApiI2b2TimingSequenceInfo[]) {
     this.constraintService.sequentialInfo = val
-    this.constraintService.checkSequential(this.queryTiming)
   }
 
-  get lastDefinition(): ApiI2b2Panel[] {
-    return this.exploreQueryService.lastDefinition
+  get lastSelectionDefinition(): ApiI2b2Panel[] {
+    return this.exploreQueryService.lastSelectionDefinition
+  }
+
+  get lastSequenceDefinition(): ApiI2b2Panel[] {
+    return this.exploreQueryService.lastSequentialDefinition
   }
 
   get lastTiming(): ApiI2b2Timing {

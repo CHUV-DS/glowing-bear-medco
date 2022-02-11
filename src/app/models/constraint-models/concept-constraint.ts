@@ -53,14 +53,15 @@ export class ConceptConstraint extends Constraint {
     this.valDateConstraint.isObservationDate = false;
     this.obsDateConstraint = new TimeConstraint();
     this.obsDateConstraint.isObservationDate = true;
-    this.textRepresentation = 'Concept';
+    this._textRepresentation = 'Concept';
   }
 
   clone(): ConceptConstraint {
     let res = new ConceptConstraint(this._treeNode.clone())
-    res.textRepresentation = this.textRepresentation
+    res._textRepresentation = this.textRepresentation
     res.parentConstraint = this.parentConstraint
     res.concept = this.concept.clone()
+    res.excluded = this.excluded
     res.applyNumericalOperator = this.applyNumericalOperator
     res.applyTextOperator = this.applyTextOperator;
 
@@ -107,8 +108,19 @@ export class ConceptConstraint extends Constraint {
 
   set concept(concept: Concept) {
     this._concept = concept;
-    this.textRepresentation = concept ? `Ontology concept: ${concept.label}` : FormatHelper.nullValuePlaceholder;
+    this._textRepresentation = concept ? `Ontology concept: ${concept.label}` : FormatHelper.nullValuePlaceholder;
   }
+
+  get textRepresentation(): string {
+    let currentRepresentation = super.textRepresentation;
+    this._textRepresentation = this.excluded ? 'not (' + currentRepresentation + ')' : currentRepresentation
+    return super.textRepresentation
+  }
+/*
+  set textRepresentation(text: string) {
+    super._textRepresentation = text
+  }
+  */
 
   get valueConstraints(): ValueConstraint[] {
     return this._valueConstraints;

@@ -10,57 +10,39 @@
 
 import { Constraint } from './constraint';
 import { CombinationState } from './combination-state';
-import { ApiI2b2TimingSequenceInfo } from '../api-request-models/medco-node/api-sequence-of-events/api-i2b2-timing-sequence-info';
+import { CompositeConstraint } from './composite-constraint';
 
-export class CombinationConstraint extends Constraint {
+export class CombinationConstraint extends CompositeConstraint {
 
-  private _children: Constraint[];
-  private _temporalSequence: ApiI2b2TimingSequenceInfo[];
+
   private _combinationState: CombinationState;
-  private _isRoot: boolean;
 
 
   constructor() {
     super();
-    this._children = [];
     this.combinationState = CombinationState.And;
-    this.isRoot = false;
-    this._temporalSequence = [];
-    this.textRepresentation = 'Group';
   }
 
-  get className(): string {
+  get compositeClassName(): string {
     return 'CombinationConstraint';
   }
 
-  addChild(constraint: Constraint) {
-
-    if (!(<CombinationConstraint>constraint).isRoot) {
-      // to enforce polymorphism, otherwise child set method is not called
-      constraint.parentConstraint = this;
-    }
-    this.children.push(constraint);
-    this.updateSequences()
-    this.updateTextRepresentation();
-    return;
-  }
 
   updateChild(index: number, constraint: Constraint) {
     if (!(<CombinationConstraint>constraint).isRoot) {
       constraint.parentConstraint = this;
     }
     this.children[index] = constraint
-    this.updateTextRepresentation();
     return;
   }
 
   clone(): CombinationConstraint {
     let res = new CombinationConstraint();
-    res.textRepresentation = this.textRepresentation;
+    res._textRepresentation = this.textRepresentation;
     res.parentConstraint = (this.parentConstraint) ? this.parentConstraint : null;
     res.isRoot = this.isRoot;
+    res.excluded = this.excluded
     res.combinationState = this.combinationState;
-    res.temporalSequence = this.temporalSequence.map(sequenceInfo => sequenceInfo.clone());
     res.panelTimingSameInstance = this.panelTimingSameInstance;
     res.children = this.children.map(constr => constr.clone());
     return res;
@@ -92,8 +74,6 @@ export class CombinationConstraint extends Constraint {
 
   set children(value: Constraint[]) {
     this._children = value;
-    this.updateSequences();
-    this.updateTextRepresentation();
   }
 
   get combinationState(): CombinationState {
@@ -102,63 +82,13 @@ export class CombinationConstraint extends Constraint {
 
   set combinationState(value: CombinationState) {
     this._combinationState = value;
-    if (this._combinationState === CombinationState.TemporalSequence) {
-      this.updateSequences()
-    }
-    this.updateTextRepresentation();
-  }
-
-  get temporalSequence(): ApiI2b2TimingSequenceInfo[] {
-    return this._temporalSequence
-  }
-
-  set temporalSequence(sequenceInfo: ApiI2b2TimingSequenceInfo[]) {
-    this._temporalSequence = sequenceInfo
   }
 
   switchCombinationState() {
     this.combinationState = (this.combinationState === CombinationState.And) ?
       CombinationState.Or : CombinationState.And;
-    this.updateTextRepresentation();
   }
 
-  removeChildConstraint(child: Constraint) {
-    let index = this.children.indexOf(child);
-    if (index > -1) {
-      if (index !== this.children.length - 1) {
-        this._temporalSequence.splice(index, 1)
-        this.updateSequences()
-      }
-      this.children.splice(index, 1);
-    }
-    this.updateTextRepresentation();
-  }
-
-  updateSequences() {
-    const nOfChildIntervals = this._children.length - 1
-    if (!(this._temporalSequence) || (this._temporalSequence.length === 0)) {
-      if (nOfChildIntervals > -1) {
-        this._temporalSequence = Array<ApiI2b2TimingSequenceInfo>(nOfChildIntervals)
-        for (let i = 0; i < nOfChildIntervals; i++) {
-          this._temporalSequence[i] = new ApiI2b2TimingSequenceInfo;
-        }
-        this._temporalSequence.forEach((_, idx) => { this._temporalSequence[idx] = new ApiI2b2TimingSequenceInfo() })
-      }
-    } else {
-
-      if (nOfChildIntervals > this._temporalSequence.length) {
-        let newSequences = Array<ApiI2b2TimingSequenceInfo>(this._children.length - nOfChildIntervals)
-        for (let i = 0; i < this._children.length - nOfChildIntervals; i++) {
-          newSequences[i] = new ApiI2b2TimingSequenceInfo;
-        }
-        this._temporalSequence = this._temporalSequence.concat(newSequences)
-      } else if (nOfChildIntervals < this._temporalSequence.length) {
-        // this is not expected as this situation can be handled by removeChildren
-        this._temporalSequence.splice(nOfChildIntervals, this._temporalSequence.length - nOfChildIntervals)
-      }
-
-    }
-  }
 
   get isRoot(): boolean {
     return this._isRoot;
@@ -168,38 +98,22 @@ export class CombinationConstraint extends Constraint {
     this._isRoot = value;
   }
 
-
-  private updateTextRepresentation() {
+  get textRepresentation(): string {
     if (this.children.length > 0) {
       let newRepresentation = ''
       for (let index = 0; index < this.children.length; index++) {
 
         let representation = this.children[index].textRepresentation
         if (index > 0) {
-          let combinationRepresentation: string
-          switch (this.combinationState) {
-            case CombinationState.And:
-              combinationRepresentation = 'and'
-              break;
-            case CombinationState.Or:
-              combinationRepresentation = 'or'
-              break;
-            case CombinationState.TemporalSequence:
-              combinationRepresentation = (index !== (this.children.length - 1)) ?
-                this._temporalSequence[index - 1].textRepresentation :
-                ''
-              break;
-            default:
-              break;
-          }
+          let combinationRepresentation = this.combinationState === CombinationState.And ? 'and': 'or'
           representation = ` ${combinationRepresentation} ${representation}`
         }
         newRepresentation = `${newRepresentation}${representation}`
       }
 
-      this.textRepresentation = `(${newRepresentation})`
+      return this.excluded ? 'not ' : '' + `(${newRepresentation})`
     } else {
-      this.textRepresentation = 'Group';
+      return 'Group';
     }
   }
 }

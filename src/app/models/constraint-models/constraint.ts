@@ -16,6 +16,8 @@ export class Constraint {
   protected _parentConstraint: Constraint;
   // i2b2 timing policiy
   protected _panelTimingSameInstance?: boolean;
+  // If this is an inclusion or exclusion criteria
+  protected _excluded: boolean;
 
   /**
    *  inputValueValidity check that all values needed values are defined for concept with textual or numerical constraint.
@@ -28,18 +30,21 @@ export class Constraint {
 
 
   constructor() {
-    this.textRepresentation = '';
+    this._textRepresentation = '';
     this.parentConstraint = null;
     this._panelTimingSameInstance = null;
+    this.excluded = false;
   }
 
   get textRepresentation(): string {
     return this._textRepresentation;
   }
 
+  /*
   set textRepresentation(value: string) {
     this._textRepresentation = value;
   }
+  */
 
   get parentConstraint(): Constraint {
     return this._parentConstraint;
@@ -49,13 +54,22 @@ export class Constraint {
     this._parentConstraint = value;
   }
 
+  get excluded(): boolean {
+    return this._excluded
+  }
+
+  set excluded(exclusionFlag: boolean) {
+    this._excluded = exclusionFlag
+  }
+
   get className(): string {
     return 'Constraint';
   }
   clone(): Constraint {
     let ret = new Constraint()
-    ret.textRepresentation = this.textRepresentation
+    ret._textRepresentation = this.textRepresentation
     ret.panelTimingSameInstance = this.panelTimingSameInstance
+    ret.excluded = this.excluded
 
     ret.parentConstraint = (this._parentConstraint) ? this._parentConstraint : null
     return ret

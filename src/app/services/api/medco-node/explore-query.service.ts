@@ -31,9 +31,14 @@ export class ExploreQueryService {
   private static QUERY_TIMEOUT_MS = 1000 * 60 * 10;
 
   /**
-   * Last query definition used in query that successed to return anything
+   * Last query selection definition used in query that successed to return anything
    */
-  private _lastDefinition: ApiI2b2Panel[]
+  private _lastSelectionDefinition: ApiI2b2Panel[]
+
+  /**
+   * Last query sequential definition used in query that successed to return anything
+   */
+   private _lastSequentialDefinition: ApiI2b2Panel[]
 
   /**
    * Last query timing used in query that successed to return anything
@@ -66,7 +71,8 @@ export class ExploreQueryService {
    */
   private exploreQuerySingleNode(queryId: string,
     userPublicKey: string,
-    panels: ApiI2b2Panel[],
+    selectionPanels: ApiI2b2Panel[],
+    sequentialPanels: ApiI2b2Panel[],
     queryTiming: ApiI2b2Timing,
     queryTimingSequence: ApiI2b2TimingSequenceInfo[],
     node: ApiNodeMetadata,
@@ -78,7 +84,8 @@ export class ExploreQueryService {
         query: {
           queryTiming: queryTiming,
           userPublicKey: userPublicKey,
-          panels: panels,
+          selectionPanels: selectionPanels,
+          sequentialPanels: sequentialPanels,
           queryTimingSequence: queryTimingSequence
         }
       },
@@ -99,14 +106,19 @@ export class ExploreQueryService {
    */
   private exploreQueryAllNodes(queryId: string,
     userPublicKey: string,
-    panels: ApiI2b2Panel[],
+    selectionPanels: ApiI2b2Panel[],
+    sequentialPanels: ApiI2b2Panel[],
     queryTiming: ApiI2b2Timing,
     queryTimingSequence: ApiI2b2TimingSequenceInfo[]): Observable<[ApiNodeMetadata, ApiExploreQueryResult][]> {
 
-    this.preparePanelTimings(panels, queryTiming)
-
     return forkJoin(this.medcoNetworkService.nodes.map(
-      (node) => this.exploreQuerySingleNode(queryId, userPublicKey, panels, queryTiming, queryTimingSequence, node)
+      (node) => this.exploreQuerySingleNode(queryId,
+        userPublicKey,
+        selectionPanels,
+        sequentialPanels,
+        queryTiming,
+        queryTimingSequence,
+        node)
     )).pipe(timeout(ExploreQueryService.QUERY_TIMEOUT_MS));
   }
 
@@ -115,35 +127,32 @@ export class ExploreQueryService {
    * @param query
    */
   exploreQuery(query: ExploreQuery): Observable<[ApiNodeMetadata, ApiExploreQueryResult][]> {
-    let currentDefinition = this.constraintMappingService.mapConstraint(query.constraint);
+    let currentSelectionDefinition = this.constraintMappingService.mapConstraint(query.constraint);
+    let currentSequentialDefinition = this.constraintMappingService.mapConstraint(query.sequentialConstraint)
     let currentTiming = query.queryTimingSameInstanceNum ? ApiI2b2Timing.sameInstanceNum : ApiI2b2Timing.any;
-    let currentTimingSequence = query.timingSequenceInfo
+    let currentTimingSequence= query.sequentialConstraint.temporalSequence
 
     return this.exploreQueryAllNodes(
       query.uniqueId,
       this.cryptoService.ephemeralPublicKey,
-      currentDefinition,
+      currentSelectionDefinition,
+      currentSequentialDefinition,
       currentTiming,
       query.timingSequenceInfo
     ).pipe(tap(() => {
-      this._lastDefinition = currentDefinition
+      this._lastSelectionDefinition = currentSelectionDefinition
+      this._lastSequentialDefinition = currentSelectionDefinition
       this._lastQueryTiming = currentTiming
       this._lastTimingSequence = currentTimingSequence
     }));
   }
 
-  // preparePanelTimings reset all panel timing to false if the query-level is false,
-  // does nothing otherwise
-  private preparePanelTimings(panels: ApiI2b2Panel[], queryTiming: ApiI2b2Timing): void {
-    if (queryTiming === ApiI2b2Timing.any) {
-      panels.forEach(panel => {
-        panel.panelTiming = ApiI2b2Timing.any
-      })
-    }
+  get lastSelectionDefinition(): ApiI2b2Panel[]{
+    return this._lastSelectionDefinition
   }
 
-  get lastDefinition(): ApiI2b2Panel[] {
-    return this._lastDefinition
+  get lastSequentialDefinition(): ApiI2b2Panel[]{
+    return this._lastSequentialDefinition
   }
 
   get lastQueryTiming(): ApiI2b2Timing {

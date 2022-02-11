@@ -85,7 +85,8 @@ export class GbExploreComponent implements AfterViewChecked {
       creationDates.push(new Date(nunc))
       updateDates.push(new Date(nunc))
       let definition = new ApiQueryDefinition()
-      definition.panels = this.queryService.lastDefinition
+      definition.selectionPanels = this.queryService.lastSelectionDefinition
+      definition.sequentialPanels = this.queryService.lastSequenceDefinition
       definition.queryTiming = this.queryService.lastTiming
       definition.queryTimingSequence = this.queryService.lastTimingSequence
       queryDefinitions.push(definition)
@@ -93,12 +94,12 @@ export class GbExploreComponent implements AfterViewChecked {
 
     let cohort = new Cohort(
       this.cohortName,
-      this.constraintService.rootInclusionConstraint,
-      this.constraintService.rootExclusionConstraint,
+      this.constraintService.rootSelectionConstraint,
+      this.constraintService.rootSequentialConstraint,
       creationDates,
       updateDates,
     )
-    if (queryDefinitions.some(apiDef => (apiDef.panels) || (apiDef.queryTiming))) {
+    if (queryDefinitions.some(apiDef => (apiDef.selectionPanels) || (apiDef.queryTiming))) {
       cohort.queryDefinition = queryDefinitions
     }
     cohort.patient_set_id = this.lastSuccessfulSet
@@ -156,7 +157,7 @@ export class GbExploreComponent implements AfterViewChecked {
   }
 
   get hasConstraint(): boolean {
-    return this.constraintService.hasConstraint().valueOf()
+    return this.constraintService.hasSelectionConstraint().valueOf()
   }
 
 

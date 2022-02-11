@@ -19,8 +19,8 @@ export class SurvivalSettings {
     public endsWhen: string,
     public subGroupTextRepresentations: {
       groupId: string,
-      rootInclusionConstraint?: string,
-      rootExclusionConstraint?: string
+      rootSelectionConstraint?: string,
+      rootSequentialConstraint?: string
     }[]
   ) { }
 
@@ -40,20 +40,21 @@ export class SurvivalSettings {
   }
 
   subGroupsToTable(): { headers: string[][], data: string[][] } {
-    let headers = [['Group', 'Inclusion/Exclusion', 'Definition']]
+    let headers = [['Group', 'Definition']]
     let data = new Array<string[]>()
     this.subGroupTextRepresentations.forEach(
       sg => {
-        if (sg.rootInclusionConstraint) {
-          data.push([sg.groupId, 'inclusion', sg.rootInclusionConstraint])
-          if (sg.rootExclusionConstraint) {
-            data.push(['', 'exclusion', sg.rootExclusionConstraint])
+        if (sg.rootSelectionConstraint) {
+          let constraintText = sg.rootSelectionConstraint
+          if (sg.rootSequentialConstraint) {
+            constraintText = "Selection Constraint: (" + sg.rootSelectionConstraint + ")\n" +
+              "Sequential Constraint:(" + sg.rootSequentialConstraint + ")"
           }
-        } else if (sg.rootExclusionConstraint) {
-          data.push([sg.groupId, 'exclusion', sg.rootExclusionConstraint])
+          data.push([sg.groupId, constraintText])
+
         } else {
-          console.log(`in formatting sub-group definitions: sub-group ${sg.groupId} has no definition ` +
-            '(neither inclusion nor exclusion). This is not supposed to happen.')
+          console.warn(`in formatting sub-group definitions: sub-group ${sg.groupId} has no definition ` +
+            'This is not supposed to happen.')
         }
       }
     )

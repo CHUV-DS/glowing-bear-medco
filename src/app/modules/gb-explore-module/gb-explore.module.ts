@@ -28,7 +28,9 @@ import { MultiSelectModule } from 'primeng';
 import { GbSelectionModule } from './gb-selection-component/gb-selection.module';
 
 import { TooltipModule } from 'primeng/tooltip';
-import { GbTemporalSequenceComponent } from './constraint-components/gb-combination-constraint/gb-temporal-sequence/gb-temporal-sequence.component';
+import { GbTemporalSequenceComponent } from './constraint-components/gb-sequential-constraint/gb-temporal-sequence/gb-temporal-sequence.component';
+import { GbCompositeConstraintComponent } from './constraint-components/gb-composite-constraint/gb-composite-constraint.component';
+import { GbSequentialConstraintComponent } from './constraint-components/gb-sequential-constraint/gb-sequential-constraint.component';
 
 @NgModule({
   imports: [
@@ -42,6 +44,7 @@ import { GbTemporalSequenceComponent } from './constraint-components/gb-combinat
     AutoCompleteModule,
     CheckboxModule,
     CalendarModule,
+    InputSwitchModule,
     PanelModule,
     MultiSelectModule,
     GbSelectionModule,
@@ -62,6 +65,8 @@ import { GbTemporalSequenceComponent } from './constraint-components/gb-combinat
     GbConstraintComponent,
     GbCombinationConstraintComponent,
     GbTemporalSequenceComponent,
+    GbCompositeConstraintComponent,
+    GbSequentialConstraintComponent
   ]
 })
 export class GbExploreModule {

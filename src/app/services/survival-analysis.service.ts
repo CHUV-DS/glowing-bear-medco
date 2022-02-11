@@ -17,10 +17,8 @@ import { Concept } from '../models/constraint-models/concept';
 import { ApiI2b2Panel } from '../models/api-request-models/medco-node/api-i2b2-panel';
 import { ClearGroup } from '../models/survival-analysis/clear-group';
 import { ApiSurvivalAnalysisResponse } from '../models/api-response-models/survival-analysis/survival-analysis-response';
-import { Constraint } from '../models/constraint-models/constraint';
 import { SurvivalAnalysisClear } from '../models/survival-analysis/survival-analysis-clear';
 import { Granularity } from '../models/survival-analysis/granularity-type';
-import { NegationConstraint } from '../models/constraint-models/negation-constraint';
 import { ErrorHelper } from '../utilities/error-helper';
 import { ConstraintMappingService } from './constraint-mapping.service';
 import { When } from '../models/survival-analysis/when-type';
@@ -30,13 +28,16 @@ import { CombinationConstraint } from '../models/constraint-models/combination-c
 import { map } from 'rxjs/operators';
 import { ApiI2b2Timing } from '../models/api-request-models/medco-node/api-i2b2-timing';
 import { QueryTemporalSetting } from '../models/query-models/query-temporal-setting';
+import { SequentialConstraint } from '../models/constraint-models/sequential-constraint';
 
 export class SubGroup {
   name: string
   timing: ApiI2b2Timing
+
   queryTemporalSetting: QueryTemporalSetting
-  rootInclusionConstraint: CombinationConstraint
-  rootExclusionConstraint: CombinationConstraint
+  rootSelectionConstraint: CombinationConstraint
+  rootSequentialConstraint: SequentialConstraint
+
 }
 
 @Injectable()
@@ -137,26 +138,6 @@ export class SurvivalService {
 
   }
 
-
-  generatePanels(subGroup: SubGroup): ApiI2b2Panel[] {
-    let constraint: Constraint
-    if (!subGroup.rootInclusionConstraint && !subGroup.rootExclusionConstraint) {
-      return null
-    }
-    if (subGroup.rootInclusionConstraint && !subGroup.rootExclusionConstraint) {
-      constraint = subGroup.rootInclusionConstraint
-    }
-    if (!subGroup.rootInclusionConstraint && subGroup.rootExclusionConstraint) {
-      constraint = new NegationConstraint(subGroup.rootExclusionConstraint)
-    } else {
-      constraint = new CombinationConstraint();
-      (constraint as CombinationConstraint).addChild(subGroup.rootInclusionConstraint);
-      (constraint as CombinationConstraint).addChild(new NegationConstraint(subGroup.rootExclusionConstraint))
-    }
-
-    return this.constraintMappingService.mapConstraint(constraint)
-  }
-
   runSurvivalAnalysis(): Observable<ApiSurvivalAnalysisResponse[]> {
     let apiSurvivalAnalysis = new ApiSurvivalAnalysis()
     let d = new Date()
@@ -197,13 +178,15 @@ export class SurvivalService {
     apiSurvivalAnalysis.endsWhen = this.endsWhen
 
     apiSurvivalAnalysis.cohortName = this.cohortService.selectedCohort.name
+
     apiSurvivalAnalysis.subGroupDefinitions = this.subGroups.map(
       sg => {
         return {
           groupName: sg.name,
           subGroupTiming: sg.timing,
-          queryTimingSequence: sg.rootInclusionConstraint.temporalSequence,
-          panels: this.generatePanels(sg)
+          selectionPanels: this.constraintMappingService.mapConstraint(sg.rootSelectionConstraint),
+          sequentialPanels: this.constraintMappingService.mapConstraint(sg.rootSequentialConstraint),
+          queryTimingSequence: sg.rootSequentialConstraint.temporalSequence
         }
       }
     )
@@ -272,8 +255,8 @@ export class SurvivalService {
     let subGroupsTextualRepresentations = this._subGroups.map(sg => {
       return {
         groupId: sg.name,
-        rootInclusionConstraint: sg.rootInclusionConstraint ? sg.rootInclusionConstraint.textRepresentation : null,
-        rootExclusionConstraint: sg.rootExclusionConstraint ? sg.rootExclusionConstraint.textRepresentation : null
+        rootSelectionConstraint: sg.rootSelectionConstraint ? sg.rootSelectionConstraint.textRepresentation : null,
+        rootSequentialConstraint: sg.rootSequentialConstraint ? sg.rootSequentialConstraint.textRepresentation : null
       }
     })
     return new SurvivalSettings(

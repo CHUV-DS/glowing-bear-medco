@@ -100,7 +100,7 @@ export class GbCohortLandingZoneComponent implements OnInit {
       throw ErrorHelper.handleNewUserInputError(`Subgroup name ${this.name} can only contain alphanumerical symbols (without ö é ç ...) and underscores "_".`);
     } else if (this.name.length > nameMaxLength) {
       throw ErrorHelper.handleNewUserInputError(`Subgroup name length cannot exceed ${nameMaxLength}.`);
-    } else if (!this.constraintService.hasExclusionConstraint() && !this.constraintService.hasInclusionConstraint()) {
+    } else if (!this.constraintService.hasSelectionConstraint()) {
       throw ErrorHelper.handleNewUserInputError('Both inclusion and exclusion constraints are empty, nothing to add.');
     }
 
@@ -112,10 +112,12 @@ export class GbCohortLandingZoneComponent implements OnInit {
 
     let newSubGroup: SubGroup = {
       name: this.name,
+
       queryTemporalSetting: this.queryService.queryTiming,
       timing: this.queryService.queryTiming ? ApiI2b2Timing.sameInstanceNum : ApiI2b2Timing.any,
-      rootInclusionConstraint: this.constraintService.rootInclusionConstraint.clone(),
-      rootExclusionConstraint: this.constraintService.rootExclusionConstraint.clone()
+      rootSelectionConstraint: this.constraintService.rootSelectionConstraint.clone(),
+      rootSequentialConstraint: this.constraintService.rootSequentialConstraint.clone(),
+
     }
     this.subGroups.push({ label: this.name, value: newSubGroup })
     this._usedNames.add(this.name)
@@ -136,8 +138,9 @@ export class GbCohortLandingZoneComponent implements OnInit {
   loadSubGroup(event: Event) {
     this.name = this.selectedSubGroup.name
     this.queryService.queryTiming = this.selectedSubGroup.queryTemporalSetting
-    this.constraintService.rootInclusionConstraint = this.selectedSubGroup.rootInclusionConstraint.clone()
-    this.constraintService.rootExclusionConstraint = this.selectedSubGroup.rootExclusionConstraint.clone()
+    this.constraintService.rootSelectionConstraint = this.selectedSubGroup.rootSelectionConstraint.clone()
+    this.constraintService.rootSequentialConstraint = this.selectedSubGroup.rootSequentialConstraint.clone()
+
   }
 
   clearName() {

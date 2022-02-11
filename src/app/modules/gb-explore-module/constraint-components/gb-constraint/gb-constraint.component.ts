@@ -16,6 +16,7 @@ import { QueryService } from '../../../../services/query.service';
 import { AppConfig } from '../../../../config/app.config';
 import { GenomicAnnotationsService } from '../../../../services/api/genomic-annotations.service';
 import { QueryTemporalSetting } from 'src/app/models/query-models/query-temporal-setting';
+import { CompositeConstraint } from 'src/app/models/constraint-models/composite-constraint';
 
 @Component({
   selector: 'gb-constraint',
@@ -93,10 +94,14 @@ export class GbConstraintComponent implements OnInit {
     this.queryService.isDirty = true;
   }
 
+  changeInclusion() {
+    this.constraint.excluded = !this.constraint.excluded
+  }
+
   get containerClass(): string {
     if (this.element.nativeElement.children[0].classList.length === 0) {
-      const containerClassName = (this.constraint.className === 'CombinationConstraint'
-        && (<CombinationConstraint>this.constraint).isRoot) ?
+      const containerClassName = (this.constraint.className === 'CompositeConstraint'
+        && (<CompositeConstraint>this.constraint).isRoot) ?
         'gb-constraint-container-root ' : 'gb-constraint-container';
 
       let borderClassName = '';

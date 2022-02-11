@@ -22,6 +22,7 @@ import { CombinationConstraint } from '../../../models/constraint-models/combina
 import { OperationType } from '../../../models/operation-models/operation-types';
 import { QueryTemporalSetting } from 'src/app/models/query-models/query-temporal-setting';
 import { ApiI2b2TimingSequenceInfo } from 'src/app/models/api-request-models/medco-node/api-sequence-of-events/api-i2b2-timing-sequence-info';
+import { SequentialConstraint } from 'src/app/models/constraint-models/sequential-constraint';
 
 type LoadingState = 'loading' | 'complete';
 
@@ -44,13 +45,15 @@ type LoadingState = 'loading' | 'complete';
 })
 export class GbSelectionComponent {
 
+  // to be accessed from the HTML template
+  QueryTemporalSetting = QueryTemporalSetting
+
   _timings: SelectItem[] = [
     { label: 'Treat groups independently', value: QueryTemporalSetting.independent },
     { label: 'Selected groups occur in the same instance', value: QueryTemporalSetting.sameinstance },
     { label: 'Selected groups occur in a temporal sequence', value: QueryTemporalSetting.sequential }]
 
-  @ViewChild('rootInclusionConstraintComponent', { static: true }) rootInclusionConstraintComponent: GbConstraintComponent;
-  @ViewChild('rootExclusionConstraintComponent', { static: true }) rootExclusionConstraintComponent: GbConstraintComponent;
+  @ViewChild('rootConstraintComponent', { static: true }) rootConstraintComponent: GbConstraintComponent;
 
   private isUploadListenerNotAdded: boolean;
 
@@ -103,12 +106,14 @@ export class GbSelectionComponent {
     return this.queryService.isUpdating ? 'loading' : 'complete';
   }
 
-  get rootInclusionConstraint(): CombinationConstraint {
-    return this.constraintService.rootInclusionConstraint
+  get rootSelectionConstraint(): CombinationConstraint {
+    return this.constraintService.rootSelectionConstraint
   }
 
-  get rootExclusionConstraint(): CombinationConstraint {
-    return this.constraintService.rootExclusionConstraint
+  get rootSequentialConstraint(): SequentialConstraint {
+    return this.constraintService.rootSequentialConstraint
   }
+
+
 
 }

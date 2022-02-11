@@ -14,7 +14,8 @@ export class ApiSurvivalAnalysis {
   cohortName: string
   subGroupDefinitions: Array<{ groupName: string,
     subGroupTiming: ApiI2b2Timing,
-    panels: Array<ApiI2b2Panel>,
+    selectionPanels: Array<ApiI2b2Panel>,
+    sequentialPanels: Array<ApiI2b2Panel>,
     queryTimingSequence: Array<ApiI2b2TimingSequenceInfo>}>
   timeLimit: number
   timeGranularity: string
