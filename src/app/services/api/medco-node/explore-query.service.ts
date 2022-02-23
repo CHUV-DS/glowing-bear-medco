@@ -138,7 +138,7 @@ export class ExploreQueryService {
       currentSelectionDefinition,
       currentSequentialDefinition,
       currentTiming,
-      query.timingSequenceInfo
+      currentTimingSequence
     ).pipe(tap(() => {
       this._lastSelectionDefinition = currentSelectionDefinition
       this._lastSequentialDefinition = currentSelectionDefinition

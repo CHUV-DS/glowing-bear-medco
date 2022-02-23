@@ -52,7 +52,7 @@ export class SequentialConstraint extends CompositeConstraint {
     res.parentConstraint = (this.parentConstraint) ? this.parentConstraint : null;
     res.isRoot = this.isRoot;
     res.excluded = this.excluded
-    res.temporalSequence = this.temporalSequence.map(sequenceInfo => sequenceInfo.clone());
+    res.temporalSequence = (this.temporalSequence) ? this.temporalSequence.map(sequenceInfo => sequenceInfo.clone()) : null;
     res.panelTimingSameInstance = this.panelTimingSameInstance;
     res.children = this.children.map(constr => constr.clone());
     return res;

@@ -183,7 +183,6 @@ export class QueryService {
     this.query.constraint = this.constraintService.generateConstraint();
     this.query.sequentialConstraint = this.constraintService.rootSequentialConstraint;
     this.query.queryTimingSameInstanceNum = this.queryTiming === QueryTemporalSetting.sameinstance
-    this.query.timingSequenceInfo = this.queryTiming === QueryTemporalSetting.sequential ? this.constraintService.sequentialInfo : null
 
     this.genomicAnnotationsService.addVariantIdsToConstraints(this.query.constraint).pipe(
       catchError((err) => {
