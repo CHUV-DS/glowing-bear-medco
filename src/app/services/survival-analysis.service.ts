@@ -17,10 +17,8 @@ import { Concept } from '../models/constraint-models/concept';
 import { ApiI2b2Panel } from '../models/api-request-models/medco-node/api-i2b2-panel';
 import { ClearGroup } from '../models/survival-analysis/clear-group';
 import { ApiSurvivalAnalysisResponse } from '../models/api-response-models/survival-analysis/survival-analysis-response';
-import { Constraint } from '../models/constraint-models/constraint';
 import { SurvivalAnalysisClear } from '../models/survival-analysis/survival-analysis-clear';
 import { Granularity } from '../models/survival-analysis/granularity-type';
-import { NegationConstraint } from '../models/constraint-models/negation-constraint';
 import { ErrorHelper } from '../utilities/error-helper';
 import { ConstraintMappingService } from './constraint-mapping.service';
 import { When } from '../models/survival-analysis/when-type';
@@ -34,8 +32,7 @@ import { CensoringFrom } from '../models/survival-analysis/censoring-from-type';
 export class SubGroup {
   name: string
   timing: ApiI2b2Timing
-  rootInclusionConstraint: CombinationConstraint
-  rootExclusionConstraint: CombinationConstraint
+  rootConstraint: CombinationConstraint
 }
 
 @Injectable()
@@ -147,20 +144,12 @@ export class SurvivalService {
 
 
   generatePanels(subGroup: SubGroup): ApiI2b2Panel[] {
-    let constraint: Constraint
-    if (!subGroup.rootInclusionConstraint && !subGroup.rootExclusionConstraint) {
+
+    if (!subGroup.rootConstraint) {
       return null
     }
-    if (subGroup.rootInclusionConstraint && !subGroup.rootExclusionConstraint) {
-      constraint = subGroup.rootInclusionConstraint
-    }
-    if (!subGroup.rootInclusionConstraint && subGroup.rootExclusionConstraint) {
-      constraint = new NegationConstraint(subGroup.rootExclusionConstraint)
-    } else {
-      constraint = new CombinationConstraint();
-      (constraint as CombinationConstraint).addChild(subGroup.rootInclusionConstraint);
-      (constraint as CombinationConstraint).addChild(new NegationConstraint(subGroup.rootExclusionConstraint))
-    }
+
+    let constraint = subGroup.rootConstraint
 
     return this.constraintMappingService.mapConstraint(constraint)
   }
@@ -275,8 +264,7 @@ export class SurvivalService {
     let subGroupsTextualRepresentations = this._subGroups.map(sg => {
       return {
         groupId: sg.name,
-        rootInclusionConstraint: sg.rootInclusionConstraint ? sg.rootInclusionConstraint.textRepresentation : null,
-        rootExclusionConstraint: sg.rootExclusionConstraint ? sg.rootExclusionConstraint.textRepresentation : null
+        rootConstraint: sg.rootConstraint ? sg.rootConstraint.textRepresentation : null
       }
     })
     return new SurvivalSettings(
