@@ -6,9 +6,9 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-import { Constraint } from "./constraint";
+import { Constraint } from './constraint';
 
-export abstract class CompositeConstraint extends Constraint{
+export abstract class CompositeConstraint extends Constraint {
 
   protected _children: Constraint[];
   protected _isRoot: boolean;
@@ -20,7 +20,7 @@ export abstract class CompositeConstraint extends Constraint{
   }
   abstract get compositeClassName(): string;
 
-  constructor(){
+  constructor() {
     super()
     this._children = [];
 
@@ -44,6 +44,21 @@ export abstract class CompositeConstraint extends Constraint{
     this.children[index] = constraint
 
     return;
+  }
+
+  /**
+   *  the input value validity of a composite constraint is true if all children constraints have valid values.
+   *  If one or multiple children are not valid, only the first non-empty message string is returned
+   */
+  inputValueValidity(): string {
+
+    for (const child of this.children) {
+      let validity = child.inputValueValidity()
+      if (validity !== '') {
+        return validity
+      }
+    }
+    return ''
   }
 
   get children(): Constraint[] {

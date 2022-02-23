@@ -67,8 +67,6 @@ export class Cohort {
     if (this._rootSelectionConstraint) {
       let cpy = new CombinationConstraint
       cpy.parentConstraint = this._rootSelectionConstraint.parentConstraint
-      // TODO what to do with this
-      //cpy.textRepresentation = this._rootSelectionConstraint.textRepresentation
 
       cpy.children = this._rootSelectionConstraint.children
       cpy.combinationState = this._rootSelectionConstraint.combinationState
@@ -84,7 +82,6 @@ export class Cohort {
     if (constr) {
       let cpy = new CombinationConstraint
       cpy.parentConstraint = constr.parentConstraint
-      //cpy.textRepresentation = constr.textRepresentation
 
       cpy.children = constr.children
       cpy.combinationState = constr.combinationState
@@ -97,12 +94,10 @@ export class Cohort {
     }
   }
 
-  get rootSequentialConstraint(): SequentialConstraint{
+  get rootSequentialConstraint(): SequentialConstraint {
     if (this._rootSequentialConstraint) {
       let cpy = new SequentialConstraint
       cpy.parentConstraint = this._rootSequentialConstraint.parentConstraint
-      // TODO what to do with this
-      //cpy.textRepresentation = this._rootSelectionConstraint.textRepresentation
 
       cpy.children = this._rootSequentialConstraint.children
 
@@ -118,10 +113,9 @@ export class Cohort {
     if (constr) {
       let cpy = new SequentialConstraint
       cpy.parentConstraint = constr.parentConstraint
-      //cpy.textRepresentation = constr.textRepresentation
 
       cpy.children = constr.children
-      ///cpy.combinationState = constr.combinationState
+
       cpy.isRoot = constr.isRoot
 
       this._rootSequentialConstraint = cpy

@@ -25,6 +25,7 @@ import { OperationType } from '../../models/operation-models/operation-types';
 import { ApiQueryDefinition } from '../../models/api-request-models/medco-node/api-query-definition';
 import { MedcoNetworkService } from '../../services/api/medco-network.service';
 import { ErrorHelper } from '../../utilities/error-helper';
+import { QueryTemporalSetting } from 'src/app/models/query-models/query-temporal-setting';
 
 @Component({
   selector: 'gb-explore',
@@ -156,8 +157,10 @@ export class GbExploreComponent implements AfterViewChecked {
     return this.queryService.isDirty
   }
 
-  get hasConstraint(): boolean {
-    return this.constraintService.hasSelectionConstraint().valueOf()
+  get hasDefinitions(): boolean {
+    let hasSelectionConstraint = this.constraintService.hasSelectionConstraint().valueOf()
+    let hasSequentialConstraint = this.constraintService.hasSequentialConstraint().valueOf()
+    return hasSelectionConstraint && (this.queryService.queryTiming === QueryTemporalSetting.sequential ? hasSequentialConstraint : true)
   }
 
 

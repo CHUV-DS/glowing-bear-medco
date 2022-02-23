@@ -15,16 +15,17 @@ import { FormatHelper } from '../../utilities/format-helper';
 export class CohortConstraint extends Constraint {
   private _cohort: Cohort;
 
-  constructor() {
-    super();
-    this._textRepresentation = 'Cohort';
-  }
-  
-  static NewCohortConstraintFromCohort(cohort: Cohort): CohortConstraint{
+  static NewCohortConstraintFromCohort(cohort: Cohort): CohortConstraint {
     const cohortConstraint = new CohortConstraint();
     cohortConstraint.cohort = cohort;
     cohortConstraint._textRepresentation = cohortConstraint.cohort.name;
     return cohortConstraint
+  }
+
+
+  constructor() {
+    super();
+    this._textRepresentation = 'Cohort';
   }
 
   clone(): CohortConstraint {

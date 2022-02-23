@@ -123,7 +123,7 @@ export class ConstraintService {
    * is returned by default.
    */
   public validateConstraintValues(): string {
-    let constraintValidity= ''
+    let constraintValidity = ''
     if (this.hasSelectionConstraint()) {
       constraintValidity = this.rootSelectionConstraint.inputValueValidity()
       if (constraintValidity !== '') {
@@ -131,7 +131,7 @@ export class ConstraintService {
       }
 
     }
-    if (this.hasSequentialConstraint()){
+    if (this.hasSequentialConstraint()) {
       constraintValidity = this.rootSequentialConstraint.inputValueValidity()
     }
 
@@ -156,6 +156,9 @@ export class ConstraintService {
   public clearConstraint() {
     this.rootSelectionConstraint.children.length = 0;
     this.rootSequentialConstraint.children.length = 0;
+    if (!!(this.rootSequentialConstraint.temporalSequence)) {
+      this.rootSequentialConstraint.temporalSequence.length = 0;
+    }
 
   }
 

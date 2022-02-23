@@ -101,7 +101,7 @@ export class GbCohortLandingZoneComponent implements OnInit {
     } else if (this.name.length > nameMaxLength) {
       throw ErrorHelper.handleNewUserInputError(`Subgroup name length cannot exceed ${nameMaxLength}.`);
     } else if (!this.constraintService.hasSelectionConstraint()) {
-      throw ErrorHelper.handleNewUserInputError('Both inclusion and exclusion constraints are empty, nothing to add.');
+      throw ErrorHelper.handleNewUserInputError('Selection constraint is empty, nothing to add.');
     }
 
     let inputValueValidation = this.constraintService.validateConstraintValues()

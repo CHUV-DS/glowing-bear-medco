@@ -27,7 +27,7 @@ export class ApiI2b2TimingSequenceInfo {
   }
 
   get textRepresentation(): string {
-    return `temporal sequence: (which date first: ${this.whichDateFirst}; which observation first: ${this.whichObservationFirst}; when: ${this.when}; which date second: ${this.whichDateSecond}; which observation second: ${this.whichObservationSecond})`;
+    return `sequence operator: (which date first: ${this.whichDateFirst}; which observation first: ${this.whichObservationFirst}; when: ${this.when}; which date second: ${this.whichDateSecond}; which observation second: ${this.whichObservationSecond})`;
   }
 
   clone(): ApiI2b2TimingSequenceInfo {

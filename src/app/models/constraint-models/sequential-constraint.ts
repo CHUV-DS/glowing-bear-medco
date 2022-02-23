@@ -6,10 +6,10 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-import { ApiI2b2TimingSequenceInfo } from "../api-request-models/medco-node/api-sequence-of-events/api-i2b2-timing-sequence-info";
-import { CompositeConstraint } from "./composite-constraint";
+import { ApiI2b2TimingSequenceInfo } from '../api-request-models/medco-node/api-sequence-of-events/api-i2b2-timing-sequence-info';
+import { CompositeConstraint } from './composite-constraint';
 
- export class SequentialConstraint extends CompositeConstraint {
+export class SequentialConstraint extends CompositeConstraint {
   private _temporalSequence: ApiI2b2TimingSequenceInfo[];
   get temporalSequence(): ApiI2b2TimingSequenceInfo[] {
     this.updateSequences()
@@ -52,23 +52,43 @@ import { CompositeConstraint } from "./composite-constraint";
     res.parentConstraint = (this.parentConstraint) ? this.parentConstraint : null;
     res.isRoot = this.isRoot;
     res.excluded = this.excluded
-    //res.combinationState = this.combinationState;
     res.temporalSequence = this.temporalSequence.map(sequenceInfo => sequenceInfo.clone());
     res.panelTimingSameInstance = this.panelTimingSameInstance;
     res.children = this.children.map(constr => constr.clone());
     return res;
   }
 
-  get textRepresentation(): string{
+  inputValueValidity(): string {
+
+    let val = super.inputValueValidity()
+    if (val !== '') {
+      return val
+    }
+    const nOfOperators = this.temporalSequence.length
+    let nOfChildren = 0
+    // because current state of glowing bear allows a first level of empty constraint if you click on the 'plus' button
+    this._children.forEach(child => {
+      if ((child as CompositeConstraint).children.length !== 0) {
+        nOfChildren++
+      }
+    })
+    const nOfExpectedChildren = nOfOperators + 1
+    if (nOfChildren !== nOfExpectedChildren) {
+      val = `there are ${nOfChildren} (non-empty) panels in sequence definition for ${nOfOperators} temporal operators instead of ${nOfExpectedChildren}.`
+    }
+
+    return val
+
+  }
+
+  get textRepresentation(): string {
     if (this.children.length > 0) {
       let newRepresentation = ''
       for (let index = 0; index < this.children.length; index++) {
 
         let representation = this.children[index].textRepresentation
         if (index > 0) {
-          let combinationRepresentation = (index !== (this.children.length - 1)) ?
-          this._temporalSequence[index - 1].textRepresentation :
-          ''
+          let combinationRepresentation = this._temporalSequence[index - 1].textRepresentation
           representation = ` ${combinationRepresentation} ${representation}`
         }
         newRepresentation = `${newRepresentation}${representation}`
@@ -78,12 +98,12 @@ import { CompositeConstraint } from "./composite-constraint";
     } else {
       return 'Group';
     }
-    
+
   }
 
   get compositeClassName(): string {
     return 'SequentialConstraint';
   }
 
-   
- }
+
+}

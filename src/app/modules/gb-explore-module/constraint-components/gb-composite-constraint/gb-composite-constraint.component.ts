@@ -1,6 +1,6 @@
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { Constraint } from 'src/app/models/constraint-models/constraint';
-import { AutoComplete, DialogService} from 'primeng';
+import { AutoComplete, DialogService } from 'primeng';
 import { TreeNode } from '../../../../models/tree-models/tree-node';
 import { AppConfig } from 'src/app/config/app.config';
 import { CohortConstraint } from 'src/app/models/constraint-models/cohort-constraint';
@@ -36,8 +36,8 @@ export class GbCompositeConstraintComponent extends GbConstraintComponent implem
     protected element: ElementRef,
     protected config: AppConfig,
     protected dialogService: DialogService) {
-      super(treeNodeService, cohortService, constraintService, queryService, genomicAnnotationsService, element, config)
-    }
+    super(treeNodeService, cohortService, constraintService, queryService, genomicAnnotationsService, element, config)
+  }
 
   ngOnInit(): void {
   }
@@ -47,7 +47,7 @@ export class GbCompositeConstraintComponent extends GbConstraintComponent implem
   }
 
   onConstraintRemoved(index: number) {
-    (<CombinationConstraint>this.constraint).children.splice(index,1);
+    (<CombinationConstraint>this.constraint).children.splice(index, 1);
     this.update();
   }
 
@@ -128,7 +128,7 @@ export class GbCompositeConstraintComponent extends GbConstraintComponent implem
       '' : 'gb-composite-constraint-child-container';
   }
 
-  get compositeClassName():string {
+  get compositeClassName(): string {
     return (this.constraint as CompositeConstraint).compositeClassName
   }
 

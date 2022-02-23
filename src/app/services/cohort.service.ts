@@ -368,7 +368,9 @@ export class CohortService {
           }
         }
       })
-    if ((cohortDefinition.sequentialPanels !== undefined) && (cohortDefinition.sequentialPanels !== null) && (cohortDefinition.sequentialPanels.length !== 0)) {
+    if ((cohortDefinition.sequentialPanels !== undefined) &&
+      (cohortDefinition.sequentialPanels !== null) &&
+      (cohortDefinition.sequentialPanels.length !== 0)) {
       this.constraintReverseMappingService.mapPanels(cohortDefinition.sequentialPanels)
         .subscribe(constraint => {
           if (constraint instanceof ConceptConstraint) {
@@ -383,7 +385,7 @@ export class CohortService {
           }
         })
       this._queryTemporalSequence.next(cohortDefinition.queryTimingSequence)
-      if (cohortDefinition.queryTimingSequence.length != (cohortDefinition.sequentialPanels.length - 1)) {
+      if (cohortDefinition.queryTimingSequence.length !== (cohortDefinition.sequentialPanels.length - 1)) {
         MessageHelper.alert('error', `A query with sequence of events have ${cohortDefinition.queryTimingSequence.length} operators ` +
           `for ${cohortDefinition.queryTimingSequence.length} sequential events, there should be ${cohortDefinition.queryTimingSequence.length - 1}`)
       }

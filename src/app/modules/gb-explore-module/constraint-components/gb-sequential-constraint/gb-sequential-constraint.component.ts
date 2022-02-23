@@ -32,12 +32,12 @@ export class GbSequentialConstraintComponent extends GbCompositeConstraintCompon
     protected element: ElementRef,
     protected config: AppConfig,
     protected dialogService: DialogService) {
-    super(treeNodeService, cohortService, constraintService, queryService, genomicAnnotationsService, element, config,dialogService)
+    super(treeNodeService, cohortService, constraintService, queryService, genomicAnnotationsService, element, config, dialogService)
   }
   ngOnInit(): void {
   }
 
-  get temporalSequence(): ApiI2b2TimingSequenceInfo[]{
+  get temporalSequence(): ApiI2b2TimingSequenceInfo[] {
     return (this.constraint as SequentialConstraint).temporalSequence
   }
 
@@ -54,11 +54,11 @@ export class GbSequentialConstraintComponent extends GbCompositeConstraintCompon
     }
   }
 
-  
+
   showTemporal(idx: number) {
     let config = new DynamicDialogConfig()
     let currentSequence = (!(this.temporalSequence) || (this.temporalSequence.length === 0)) ?
-    new ApiI2b2TimingSequenceInfo() : this.temporalSequence[idx]
+      new ApiI2b2TimingSequenceInfo() : this.temporalSequence[idx]
     this._sequenceInfoSubject = new Subject<ApiI2b2TimingSequenceInfo>()
     this._sequenceInfoSubject
       .pipe(

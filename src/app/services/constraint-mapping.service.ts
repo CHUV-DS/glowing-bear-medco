@@ -33,10 +33,11 @@ export class ConstraintMappingService {
         let compositeConstraint = constraint as CompositeConstraint
         if (compositeConstraint.children.length === 0) {
           return;
-        } else if ((compositeConstraint instanceof CombinationConstraint) && ((compositeConstraint as CombinationConstraint).combinationState === CombinationState.Or)) {
+        } else if ((compositeConstraint instanceof CombinationConstraint) &&
+          ((compositeConstraint as CombinationConstraint).combinationState === CombinationState.Or)) {
           panels.push(this.generateI2b2Panel(constraint));
         } else {
-            compositeConstraint.children.forEach((childConstraint) =>
+          compositeConstraint.children.forEach((childConstraint) =>
             this.mapCombinationConstraint(panels, childConstraint as CombinationConstraint))
         }
         break;

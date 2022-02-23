@@ -47,8 +47,8 @@ export class SurvivalSettings {
         if (sg.rootSelectionConstraint) {
           let constraintText = sg.rootSelectionConstraint
           if (sg.rootSequentialConstraint) {
-            constraintText = "Selection Constraint: (" + sg.rootSelectionConstraint + ")\n" +
-              "Sequential Constraint:(" + sg.rootSequentialConstraint + ")"
+            constraintText = 'Selection Constraint: (' + sg.rootSelectionConstraint + ')\n' +
+              'Sequential Constraint:(' + sg.rootSequentialConstraint + ')'
           }
           data.push([sg.groupId, constraintText])
 

@@ -38,7 +38,7 @@ export class ExploreQueryService {
   /**
    * Last query sequential definition used in query that successed to return anything
    */
-   private _lastSequentialDefinition: ApiI2b2Panel[]
+  private _lastSequentialDefinition: ApiI2b2Panel[]
 
   /**
    * Last query timing used in query that successed to return anything
@@ -130,7 +130,7 @@ export class ExploreQueryService {
     let currentSelectionDefinition = this.constraintMappingService.mapConstraint(query.constraint);
     let currentSequentialDefinition = this.constraintMappingService.mapConstraint(query.sequentialConstraint)
     let currentTiming = query.queryTimingSameInstanceNum ? ApiI2b2Timing.sameInstanceNum : ApiI2b2Timing.any;
-    let currentTimingSequence= query.sequentialConstraint.temporalSequence
+    let currentTimingSequence = query.sequentialConstraint.temporalSequence
 
     return this.exploreQueryAllNodes(
       query.uniqueId,
@@ -147,11 +147,11 @@ export class ExploreQueryService {
     }));
   }
 
-  get lastSelectionDefinition(): ApiI2b2Panel[]{
+  get lastSelectionDefinition(): ApiI2b2Panel[] {
     return this._lastSelectionDefinition
   }
 
-  get lastSequentialDefinition(): ApiI2b2Panel[]{
+  get lastSequentialDefinition(): ApiI2b2Panel[] {
     return this._lastSequentialDefinition
   }
 
