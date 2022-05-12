@@ -38,7 +38,7 @@ export class TimeConstraint extends Constraint {
         }
       }
     }
-    this.textRepresentation = 'Time constraint';
+    this._textRepresentation = 'Time constraint';
   }
 
   get className(): string {

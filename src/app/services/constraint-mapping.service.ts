@@ -9,11 +9,12 @@ import { GenomicAnnotationConstraint } from '../models/constraint-models/genomic
 import { ValueType } from '../models/constraint-models/value-type';
 import { CryptoService } from './crypto.service';
 import { ErrorHelper } from '../utilities/error-helper';
-import {ApiI2b2Timing} from '../models/api-request-models/medco-node/api-i2b2-timing';
-import {TextOperator} from '../models/constraint-models/text-operator';
-import {NumericalOperator} from '../models/constraint-models/numerical-operator';
-import {ApiI2B2Modifier} from '../models/api-request-models/medco-node/api-i2b2-modifier';
-import {Concept} from '../models/constraint-models/concept';
+import { ApiI2b2Timing } from '../models/api-request-models/medco-node/api-i2b2-timing';
+import { TextOperator } from '../models/constraint-models/text-operator';
+import { NumericalOperator } from '../models/constraint-models/numerical-operator';
+import { ApiI2B2Modifier } from '../models/api-request-models/medco-node/api-i2b2-modifier';
+import { Concept } from '../models/constraint-models/concept';
+import { CompositeConstraint } from '../models/constraint-models/composite-constraint';
 
 @Injectable()
 export class ConstraintMappingService {
@@ -27,15 +28,16 @@ export class ConstraintMappingService {
   }
 
   private mapCombinationConstraint(panels: ApiI2b2Panel[], constraint: Constraint) {
-
     switch (constraint.className) {
-      case 'CombinationConstraint':
-        if ((constraint as CombinationConstraint).children.length === 0) {
+      case 'CompositeConstraint':
+        let compositeConstraint = constraint as CompositeConstraint
+        if (compositeConstraint.children.length === 0) {
           return;
-        } else if ((constraint as CombinationConstraint).combinationState === CombinationState.Or) {
+        } else if ((compositeConstraint instanceof CombinationConstraint) &&
+          ((compositeConstraint as CombinationConstraint).combinationState === CombinationState.Or)) {
           panels.push(this.generateI2b2Panel(constraint));
-        } else if ((constraint as CombinationConstraint).combinationState === CombinationState.And) {
-          (constraint as CombinationConstraint).children.forEach((childConstraint) =>
+        } else {
+          compositeConstraint.children.forEach((childConstraint) =>
             this.mapCombinationConstraint(panels, childConstraint as CombinationConstraint))
         }
         break;
@@ -51,7 +53,6 @@ export class ConstraintMappingService {
    * when there are more than one.
    *
    * @param constraint
-   * @param negated
    */
   private generateI2b2Panel(constraint: Constraint): ApiI2b2Panel {
     let panel = new ApiI2b2Panel();
@@ -70,7 +71,10 @@ export class ConstraintMappingService {
         panel.conceptItems.push(...this.generateI2b2ItemsFromGenomicAnnotation(constraint as GenomicAnnotationConstraint));
         break;
 
-      case 'CombinationConstraint':
+      case 'CompositeConstraint':
+        if (!(constraint instanceof CombinationConstraint)) {
+          throw ErrorHelper.handleNewError(`illegal composite constraint (${(constraint as CompositeConstraint).compositeClassName})`)
+        }
         let combConstraint = constraint as CombinationConstraint;
         if (combConstraint.combinationState !== CombinationState.Or) {
           throw ErrorHelper.handleNewError('combination state should be OR');

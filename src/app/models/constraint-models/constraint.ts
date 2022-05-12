@@ -30,7 +30,7 @@ export class Constraint {
 
 
   constructor() {
-    this.textRepresentation = '';
+    this._textRepresentation = '';
     this.parentConstraint = null;
     this._panelTimingSameInstance = null;
     this.excluded = false;
@@ -40,9 +40,11 @@ export class Constraint {
     return this._textRepresentation;
   }
 
+  /*
   set textRepresentation(value: string) {
     this._textRepresentation = value;
   }
+  */
 
   get parentConstraint(): Constraint {
     return this._parentConstraint;
@@ -65,7 +67,7 @@ export class Constraint {
   }
   clone(): Constraint {
     let ret = new Constraint()
-    ret.textRepresentation = this.textRepresentation
+    ret._textRepresentation = this.textRepresentation
     ret.panelTimingSameInstance = this.panelTimingSameInstance
     ret.excluded = this.excluded
 

@@ -13,13 +13,16 @@ import { GbConstraintComponent } from '../constraint-components/gb-constraint/gb
 import { QueryService } from '../../../services/query.service';
 import { ConstraintService } from '../../../services/constraint.service';
 import { FormatHelper } from '../../../utilities/format-helper';
-import { Observable } from 'rxjs';
+import { combineLatest, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { SelectItem } from 'primeng';
 import { CohortService } from '../../../services/cohort.service';
 import { ApiI2b2Timing } from '../../../models/api-request-models/medco-node/api-i2b2-timing';
 import { CombinationConstraint } from '../../../models/constraint-models/combination-constraint';
 import { OperationType } from '../../../models/operation-models/operation-types';
+import { QueryTemporalSetting } from 'src/app/models/query-models/query-temporal-setting';
+import { ApiI2b2TimingSequenceInfo } from 'src/app/models/api-request-models/medco-node/api-sequence-of-events/api-i2b2-timing-sequence-info';
+import { SequentialConstraint } from 'src/app/models/constraint-models/sequential-constraint';
 
 type LoadingState = 'loading' | 'complete';
 
@@ -42,9 +45,13 @@ type LoadingState = 'loading' | 'complete';
 })
 export class GbSelectionComponent {
 
+  // to be accessed from the HTML template
+  QueryTemporalSetting = QueryTemporalSetting
+
   _timings: SelectItem[] = [
-    { label: 'Treat groups independently', value: false },
-    { label: 'Selected groups occur in the same instance', value: true }]
+    { label: 'Treat groups independently', value: QueryTemporalSetting.independent },
+    { label: 'Selected groups occur in the same instance', value: QueryTemporalSetting.sameinstance },
+    { label: 'Selected groups occur in a temporal sequence', value: QueryTemporalSetting.sequential }]
 
   @ViewChild('rootConstraintComponent', { static: true }) rootConstraintComponent: GbConstraintComponent;
 
@@ -54,10 +61,18 @@ export class GbSelectionComponent {
     private queryService: QueryService,
     private cohortService: CohortService) {
     this.isUploadListenerNotAdded = true;
-    // changes coming from cohrot restoration
-    this.cohortService.queryTiming.subscribe(timing => {
-      this.queryService.queryTimingSameInstance = timing === ApiI2b2Timing.sameInstanceNum
-    })
+    // changes coming from cohort restoration
+    combineLatest([this.cohortService.queryTiming, this.cohortService.queryTemporalSequence])
+      .subscribe(([timing, sequenceInfo]: [ApiI2b2Timing, ApiI2b2TimingSequenceInfo[]]) => {
+        if ((sequenceInfo === undefined) || (sequenceInfo === null) || (sequenceInfo.length === 0)) {
+          this.queryService.queryTiming = timing === ApiI2b2Timing.sameInstanceNum ?
+            QueryTemporalSetting.sameinstance :
+            QueryTemporalSetting.independent
+        } else {
+          this.queryService.queryTiming = QueryTemporalSetting.sequential
+          this.queryService.sequentialInfo = sequenceInfo
+        }
+      })
   }
 
   @Input()
@@ -73,12 +88,12 @@ export class GbSelectionComponent {
     return this._timings
   }
 
-  set queryTiming(val: boolean) {
-    this.queryService.queryTimingSameInstance = val
+  set queryTiming(val: QueryTemporalSetting) {
+    this.queryService.queryTiming = val
   }
 
-  get queryTiming(): boolean {
-    return this.queryService.queryTimingSameInstance
+  get queryTiming(): QueryTemporalSetting {
+    return this.queryService.queryTiming
   }
 
   get globalCount(): Observable<string> {
@@ -91,8 +106,12 @@ export class GbSelectionComponent {
     return this.queryService.isUpdating ? 'loading' : 'complete';
   }
 
-  get rootConstraint(): CombinationConstraint {
-    return this.constraintService.rootConstraint
+  get rootSelectionConstraint(): CombinationConstraint {
+    return this.constraintService.rootSelectionConstraint
+  }
+
+  get rootSequentialConstraint(): SequentialConstraint {
+    return this.constraintService.rootSequentialConstraint
   }
 
 

@@ -7,6 +7,7 @@
  */
 
 import { Constraint } from '../constraint-models/constraint';
+import { SequentialConstraint } from '../constraint-models/sequential-constraint';
 
 export class ExploreQuery {
 
@@ -15,6 +16,8 @@ export class ExploreQuery {
   private _description: string;
   // the constraint of the query
   private _constraint: Constraint;
+
+  private _sequentialConstraint: SequentialConstraint;
 
   // the query-level i2b2 timing policy
   private _queryTimingSameInstanceNum: boolean;
@@ -67,6 +70,14 @@ export class ExploreQuery {
 
   get constraint(): Constraint {
     return this._constraint;
+  }
+
+  get sequentialConstraint(): SequentialConstraint {
+    return this._sequentialConstraint;
+  }
+
+  set sequentialConstraint(sequentialConstraint: SequentialConstraint) {
+    this._sequentialConstraint = sequentialConstraint;
   }
 
   set constraint(value: Constraint) {

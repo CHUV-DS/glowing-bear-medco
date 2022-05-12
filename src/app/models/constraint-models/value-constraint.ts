@@ -16,7 +16,7 @@ export class ValueConstraint extends Constraint {
 
   constructor() {
     super();
-    this.textRepresentation = 'Value';
+    this._textRepresentation = 'Value';
   }
 
   get operator(): string {
@@ -33,7 +33,7 @@ export class ValueConstraint extends Constraint {
 
   set value(value: any) {
     this._value = value;
-    this.textRepresentation = value ? FormatHelper.nullValuePlaceholder : value.toString();
+    this._textRepresentation = value ? FormatHelper.nullValuePlaceholder : value.toString();
   }
 
   get className(): string {

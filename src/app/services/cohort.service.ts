@@ -23,6 +23,10 @@ import { CombinationConstraint } from '../models/constraint-models/combination-c
 import { ApiCohort } from '../models/api-request-models/medco-node/api-cohort';
 import { ErrorHelper } from '../utilities/error-helper';
 import { HttpErrorResponse } from '@angular/common/http';
+import { ApiI2b2TimingSequenceInfo } from '../models/api-request-models/medco-node/api-sequence-of-events/api-i2b2-timing-sequence-info';
+import { map, tap } from 'rxjs/operators';
+import { ApiI2b2TimingSequenceSpan } from '../models/api-request-models/medco-node/api-sequence-of-events/api-i2b2-span/api-i2b2-timing-sequence-span';
+import { SequentialConstraint } from '../models/constraint-models/sequential-constraint';
 
 @Injectable()
 export class CohortService {
@@ -40,6 +44,7 @@ export class CohortService {
   // term restoration
   public restoring: Subject<boolean>
   private _queryTiming: Subject<ApiI2b2Timing>
+  private _queryTemporalSequence: Subject<ApiI2b2TimingSequenceInfo[]>
   private _panelTimings: Subject<ApiI2b2Timing[]>
 
   // constraint on cohort name
@@ -86,7 +91,7 @@ export class CohortService {
         updateDates.push(new Date(apiCohort[i].updateDate))
       })
 
-      let cohort = new Cohort(cohortName, null, creationDates, updateDates)
+      let cohort = new Cohort(cohortName, null, null, creationDates, updateDates)
 
       cohort.patient_set_id = apiCohorts.map(apiCohort => apiCohort[i].queryID)
       cohort.queryDefinition = apiCohorts.map(apiCohort => apiCohort[i].queryDefinition)
@@ -130,7 +135,7 @@ export class CohortService {
         newConstraint.excluded = childConstraint.excluded
         newConstraint.panelTimingSameInstance = childConstraint.panelTimingSameInstance;
         newConstraint.addChild((newAndCombination as CombinationConstraint).children[i]);
-        (newAndCombination as CombinationConstraint).updateChild(i, newConstraint)
+        (newAndCombination as CombinationConstraint).children[i] = newConstraint;
       }
     }
 
@@ -146,6 +151,7 @@ export class CohortService {
     private constraintReverseMappingService: ConstraintReverseMappingService) {
     this.restoring = new Subject<boolean>()
     this._queryTiming = new Subject<ApiI2b2Timing>()
+    this._queryTemporalSequence = new Subject<ApiI2b2TimingSequenceInfo[]>()
     this._panelTimings = new Subject<ApiI2b2Timing[]>()
     this._nodeName = new Array<string>(this.medcoNetworkService.nodes.length)
     this.medcoNetworkService.nodes.forEach((apiMetadata => {
@@ -204,6 +210,10 @@ export class CohortService {
     return this._queryTiming.asObservable()
   }
 
+  get queryTemporalSequence(): Observable<ApiI2b2TimingSequenceInfo[]> {
+    return this._queryTemporalSequence.asObservable()
+  }
+
   get panelTimings(): Observable<ApiI2b2Timing[]> {
     return this._panelTimings.asObservable()
   }
@@ -214,7 +224,39 @@ export class CohortService {
 
   getCohorts() {
     this._isRefreshing = true
-    this.exploreCohortsService.getCohortAllNodes().subscribe({
+    this.exploreCohortsService.getCohortAllNodes().pipe(
+      // else the clone() is undefined
+      map((apiCohortResponses) => apiCohortResponses.map(
+
+        (a) => a.map((b) => {
+          if (b.queryDefinition !== null) {
+            let seq = b.queryDefinition.queryTimingSequence
+            if (seq !== null) {
+              let seqWithObject = seq.map((seqElm) => {
+                // the received seqElm is not a complete object, because it does not have methods
+                let ret = new ApiI2b2TimingSequenceInfo()
+                ret.when = seqElm.when
+                ret.whichDateFirst = seqElm.whichDateFirst
+                ret.whichDateSecond = seqElm.whichDateSecond
+                ret.whichObservationFirst = seqElm.whichObservationFirst
+                ret.whichObservationSecond = seqElm.whichObservationSecond
+                ret.spans = ((seqElm.spans) && (seqElm.spans.length > 0)) ?
+                  seqElm.spans.map(span => {
+                    let retSpan = new ApiI2b2TimingSequenceSpan()
+                    retSpan.operator = span.operator
+                    retSpan.units = span.units
+                    retSpan.value = span.value
+                    return retSpan
+                  }) : null
+                return ret
+              })
+              b.queryDefinition.queryTimingSequence = seqWithObject
+            }
+          }
+          return b
+        })
+      ))
+    ).subscribe({
       next: (apiCohorts => {
         try {
           this.updateCohorts(CohortService.apiCohortsToCohort(apiCohorts))
@@ -304,11 +346,6 @@ export class CohortService {
 
   }
 
-  updateCohortTerms(constraint: CombinationConstraint) {
-    this._selectedCohort.rootConstraint = constraint
-  }
-
-
   // from cached to view
   restoreTerms(cohors: Cohort): void {
 
@@ -319,18 +356,42 @@ export class CohortService {
     }
 
     this._queryTiming.next(cohortDefinition.queryTiming)
-    this.constraintReverseMappingService.mapPanels(cohortDefinition.panels)
+    this.constraintReverseMappingService.mapPanels(cohortDefinition.selectionPanels)
       .subscribe(constraint => {
         constraint = CohortService.unflattenConstraints(constraint)
         if (constraint) {
           if (constraint instanceof ConceptConstraint) {
-            this.constraintService.rootConstraint.addChild(constraint)
+            this.constraintService.rootSelectionConstraint.addChild(constraint)
           } else {
-            this.constraintService.rootConstraint = (constraint as CombinationConstraint);
-            this.constraintService.rootConstraint.isRoot = true
+            this.constraintService.rootSelectionConstraint = (constraint as CombinationConstraint);
+            this.constraintService.rootSelectionConstraint.isRoot = true
           }
         }
       })
+    if ((cohortDefinition.sequentialPanels !== undefined) &&
+      (cohortDefinition.sequentialPanels !== null) &&
+      (cohortDefinition.sequentialPanels.length !== 0)) {
+      this.constraintReverseMappingService.mapPanels(cohortDefinition.sequentialPanels)
+        .subscribe(constraint => {
+          if (constraint instanceof ConceptConstraint) {
+            this.constraintService.rootSequentialConstraint.addChild(constraint)
+          } else {
+
+            this.constraintService.rootSequentialConstraint = new SequentialConstraint();
+            (constraint as CombinationConstraint).children.forEach(child => {
+              this.constraintService.rootSequentialConstraint.addChild(child)
+            });
+            this.constraintService.rootSequentialConstraint.isRoot = true
+          }
+        })
+      this._queryTemporalSequence.next(cohortDefinition.queryTimingSequence)
+      if (cohortDefinition.queryTimingSequence.length !== (cohortDefinition.sequentialPanels.length - 1)) {
+        MessageHelper.alert('error', `A query with sequence of events have ${cohortDefinition.queryTimingSequence.length} operators ` +
+          `for ${cohortDefinition.queryTimingSequence.length} sequential events, there should be ${cohortDefinition.queryTimingSequence.length - 1}`)
+      }
+    } else {
+      this._queryTemporalSequence.next(null)
+    }
     this.restoring.next(true)
   }
 }
