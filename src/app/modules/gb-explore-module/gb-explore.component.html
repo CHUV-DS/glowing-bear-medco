@@ -35,7 +35,7 @@
 
         <span>
           <!-- disabled button during query -->
-          <button *ngIf="!isUpdating && hasConstraint; else disabledButton" type="button"
+          <button *ngIf="!isUpdating && hasDefinitions; else disabledButton" type="button"
             (click)="execQuery($event)" class="btn btn-outline-primary btn-sm gb-data-selection-update-btn
             {{isDirty? 'gb-explore-query-btn-dirty' : ''}}">
             Run

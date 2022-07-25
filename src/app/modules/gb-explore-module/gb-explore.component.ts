@@ -15,16 +15,17 @@ import { ExploreQueryType } from '../../models/query-models/explore-query-type';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { ConstraintService } from '../../services/constraint.service';
-import {ApiNodeMetadata} from '../../models/api-response-models/medco-network/api-node-metadata';
-import {CohortService} from '../../services/cohort.service';
-import {SavedCohortsPatientListService} from '../../services/saved-cohorts-patient-list.service';
-import {MessageHelper} from '../../utilities/message-helper';
-import {Cohort} from '../../models/cohort-models/cohort';
-import {OperationStatus} from '../../models/operation-status';
-import {OperationType} from '../../models/operation-models/operation-types';
-import {ApiQueryDefinition} from '../../models/api-request-models/medco-node/api-query-definition';
-import {MedcoNetworkService} from '../../services/api/medco-network.service';
-import {ErrorHelper} from '../../utilities/error-helper';
+import { ApiNodeMetadata } from '../../models/api-response-models/medco-network/api-node-metadata';
+import { CohortService } from '../../services/cohort.service';
+import { SavedCohortsPatientListService } from '../../services/saved-cohorts-patient-list.service';
+import { MessageHelper } from '../../utilities/message-helper';
+import { Cohort } from '../../models/cohort-models/cohort';
+import { OperationStatus } from '../../models/operation-status';
+import { OperationType } from '../../models/operation-models/operation-types';
+import { ApiQueryDefinition } from '../../models/api-request-models/medco-node/api-query-definition';
+import { MedcoNetworkService } from '../../services/api/medco-network.service';
+import { ErrorHelper } from '../../utilities/error-helper';
+import { QueryTemporalSetting } from 'src/app/models/query-models/query-temporal-setting';
 
 @Component({
   selector: 'gb-explore',
@@ -85,18 +86,21 @@ export class GbExploreComponent implements AfterViewChecked {
       creationDates.push(new Date(nunc))
       updateDates.push(new Date(nunc))
       let definition = new ApiQueryDefinition()
-      definition.panels = this.queryService.lastDefinition
+      definition.selectionPanels = this.queryService.lastSelectionDefinition
+      definition.sequentialPanels = this.queryService.lastSequenceDefinition
       definition.queryTiming = this.queryService.lastTiming
+      definition.queryTimingSequence = this.queryService.lastTimingSequence
       queryDefinitions.push(definition)
     }
 
     let cohort = new Cohort(
       this.cohortName,
-      this.constraintService.rootConstraint,
+      this.constraintService.rootSelectionConstraint,
+      this.constraintService.rootSequentialConstraint,
       creationDates,
       updateDates,
     )
-    if (queryDefinitions.some(apiDef => (apiDef.panels) || (apiDef.queryTiming))) {
+    if (queryDefinitions.some(apiDef => (apiDef.selectionPanels) || (apiDef.queryTiming))) {
       cohort.queryDefinition = queryDefinitions
     }
     cohort.patient_set_id = this.lastSuccessfulSet
@@ -164,8 +168,10 @@ export class GbExploreComponent implements AfterViewChecked {
     return this.queryService.isDirty
   }
 
-  get hasConstraint(): boolean {
-    return this.constraintService.hasConstraint().valueOf()
+  get hasDefinitions(): boolean {
+    let hasSelectionConstraint = this.constraintService.hasSelectionConstraint().valueOf()
+    let hasSequentialConstraint = this.constraintService.hasSequentialConstraint().valueOf()
+    return hasSelectionConstraint && (this.queryService.queryTiming === QueryTemporalSetting.sequential ? hasSequentialConstraint : true)
   }
 
 

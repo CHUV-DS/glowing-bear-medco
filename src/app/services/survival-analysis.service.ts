@@ -28,11 +28,17 @@ import { CombinationConstraint } from '../models/constraint-models/combination-c
 import { map } from 'rxjs/operators';
 import { ApiI2b2Timing } from '../models/api-request-models/medco-node/api-i2b2-timing';
 import { CensoringFrom } from '../models/survival-analysis/censoring-from-type';
+import { QueryTemporalSetting } from '../models/query-models/query-temporal-setting';
+import { SequentialConstraint } from '../models/constraint-models/sequential-constraint';
 
 export class SubGroup {
   name: string
   timing: ApiI2b2Timing
-  rootConstraint: CombinationConstraint
+
+  queryTemporalSetting: QueryTemporalSetting
+  rootSelectionConstraint: CombinationConstraint
+  rootSequentialConstraint: SequentialConstraint
+
 }
 
 @Injectable()
@@ -142,18 +148,6 @@ export class SurvivalService {
 
   }
 
-
-  generatePanels(subGroup: SubGroup): ApiI2b2Panel[] {
-
-    if (!subGroup.rootConstraint) {
-      return null
-    }
-
-    let constraint = subGroup.rootConstraint
-
-    return this.constraintMappingService.mapConstraint(constraint)
-  }
-
   runSurvivalAnalysis(): Observable<ApiSurvivalAnalysisResponse[]> {
     let apiSurvivalAnalysis = new ApiSurvivalAnalysis()
     let d = new Date()
@@ -196,8 +190,17 @@ export class SurvivalService {
     apiSurvivalAnalysis.censoringFrom = this.censoringFrom
 
     apiSurvivalAnalysis.cohortName = this.cohortService.selectedCohort.name
+
     apiSurvivalAnalysis.subGroupDefinitions = this.subGroups.map(
-      sg => { return { groupName: sg.name, subGroupTiming: sg.timing, panels: this.generatePanels(sg) } }
+      sg => {
+        return {
+          groupName: sg.name,
+          subGroupTiming: sg.timing,
+          selectionPanels: this.constraintMappingService.mapConstraint(sg.rootSelectionConstraint),
+          sequentialPanels: this.constraintMappingService.mapConstraint(sg.rootSequentialConstraint),
+          queryTimingSequence: sg.rootSequentialConstraint.temporalSequence
+        }
+      }
     )
 
 
@@ -264,7 +267,8 @@ export class SurvivalService {
     let subGroupsTextualRepresentations = this._subGroups.map(sg => {
       return {
         groupId: sg.name,
-        rootConstraint: sg.rootConstraint ? sg.rootConstraint.textRepresentation : null
+        rootSelectionConstraint: sg.rootSelectionConstraint ? sg.rootSelectionConstraint.textRepresentation : null,
+        rootSequentialConstraint: sg.rootSequentialConstraint ? sg.rootSequentialConstraint.textRepresentation : null
       }
     })
     return new SurvivalSettings(

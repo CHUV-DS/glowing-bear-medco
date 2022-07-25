@@ -24,7 +24,7 @@ export class GenomicAnnotationConstraint extends Constraint {
 
   constructor() {
     super();
-    this.textRepresentation = 'Genomic Annotation';
+    this._textRepresentation = 'Genomic Annotation';
     this.annotation = new GenomicAnnotation();
   }
   toString(): string {
