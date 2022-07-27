@@ -31,6 +31,7 @@ export class ApiSurvivalAnalysis {
     AppliedPath: string
   }
   endsWhen: string
+  censoringFrom: string
   userPublicKey: string
 
 }

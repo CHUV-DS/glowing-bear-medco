@@ -27,6 +27,7 @@ import { ApiSurvivalAnalysis } from '../models/api-request-models/survival-analy
 import { CombinationConstraint } from '../models/constraint-models/combination-constraint';
 import { map } from 'rxjs/operators';
 import { ApiI2b2Timing } from '../models/api-request-models/medco-node/api-i2b2-timing';
+import { CensoringFrom } from '../models/survival-analysis/censoring-from-type';
 import { QueryTemporalSetting } from '../models/query-models/query-temporal-setting';
 import { SequentialConstraint } from '../models/constraint-models/sequential-constraint';
 
@@ -52,6 +53,7 @@ export class SurvivalService {
   private _endModifier = '@'
   private _startsWhen = When.earliest
   private _endsWhen = When.earliest
+  private _censoringFrom = CensoringFrom.observations
   private _subGroups = new Array<SubGroup>()
 
   set granularity(gran: Granularity) {
@@ -115,6 +117,14 @@ export class SurvivalService {
     return this._endsWhen
   }
 
+  set censoringFrom(censoringFrom: CensoringFrom) {
+    this._censoringFrom = censoringFrom
+  }
+
+  get censoringFrom(): CensoringFrom {
+    return this._censoringFrom
+  }
+
   set subGroups(sg: SubGroup[]) {
     this._subGroups = sg
   }
@@ -176,6 +186,8 @@ export class SurvivalService {
 
     apiSurvivalAnalysis.startsWhen = this.startsWhen
     apiSurvivalAnalysis.endsWhen = this.endsWhen
+
+    apiSurvivalAnalysis.censoringFrom = this.censoringFrom
 
     apiSurvivalAnalysis.cohortName = this.cohortService.selectedCohort.name
 
